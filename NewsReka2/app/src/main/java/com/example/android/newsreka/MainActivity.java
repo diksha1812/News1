@@ -1,0 +1,91 @@
+package com.example.android.newsreka;
+
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+
+import android.os.Bundle;
+
+import java.lang.String;
+
+import com.example.android.newsreka.Adapter.FeedAdapter;
+import com.example.android.newsreka.Common.HTTPDataHandler;
+import com.example.android.newsreka.Model.RssObject;
+import com.google.gson.Gson;
+
+public class MainActivity extends AppCompatActivity {
+    Toolbar toolbar;
+    RecyclerView recyclerView;
+    RssObject rssObject;
+
+    private final String RSS_link = "http://timesofindia.indiatimes.com/rssfeedstopstories.cms";
+    private final String RSS_to_Json_API = " https://api.rss2json.com/v1/api.json?rss_url";
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("NEWS");
+        setSupportActionBar(toolbar);
+
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getBaseContext(), LinearLayoutManager.VERTICAL, false);
+        recyclerView.setLayoutManager(linearLayoutManager);
+
+        loadRSS();}
+
+
+    private void loadRSS() {
+        @SuppressWarnings("deprecation") AsyncTask<String, String, String> loadRSSAsync = new AsyncTask<String, String, String>() {
+
+            ProgressDialog mDialog = new ProgressDialog(MainActivity.this);
+
+            @Override
+            protected String doInBackground(String... strings) {
+                return null;
+            }
+
+            @Override
+            protected void onPreExecute() {
+                mDialog.setMessage("plz wait");
+                mDialog.show();
+
+            }
+
+
+            protected int doInBackground(String params) {
+                int result;
+                HTTPDataHandler http = new HTTPDataHandler();
+                result = http.GetHTTPData(params[0]);
+                return result;
+            }
+
+            @Override
+            protected void onPostExecute(String s) {
+                mDialog.dismiss();
+                rssObject new Gson().fromJson(s, RssObject.class);
+                FeedAdapter adapter = new FeedAdapter(rssObject, getBaseContext());
+                recyclerView.setAdapter(adapter);
+                adapter.notifyDataSetChanged();
+            }
+        };
+        StringBuilder url_get_data = new StringBuilder(RSS_to_Json_API);
+        url_get_data.append(RSS_link);
+        loadRSSAsync.execute(url_get_data.toString());
+
+
+    }
+
+
+
+}
+
+
+
+
